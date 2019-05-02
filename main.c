@@ -17,6 +17,7 @@ int main() {
     lista_PDIs *BDpdis;
     BDlocais = inicia_lista_locais();
     BDpdis = inicia_lista_PDIs();
+    /*codigo de teste*/
     aux = cria_local("Coimbra", BDlocais);
     cria_local("A", BDlocais);
     cria_local("C", BDlocais);
@@ -32,6 +33,13 @@ int main() {
     printf("-----------------");
     imprime_lista_PDIs(aux->pontos);
     printf("-----------------");
+    /*carregar informacao do ficheiro para listas ligadas*/
+
+
+    /*criar menus*/
+
+
+    /*desalocacao de memoria*/
     destroi_lista_locais(BDlocais);
     destroi_lista_PDIs(BDpdis);
     return 0;
