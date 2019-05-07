@@ -24,7 +24,7 @@ typedef struct{ /*estrutura para data de nascimento*/
 
 typedef struct _utilizador{ /*estrutura para registo de utilizador*/
     int id; /*identificador único*/
-    char *nome;
+    char *nome_utilizador;
     char *morada;
     data nascimento;
     int telefone;
@@ -38,7 +38,7 @@ typedef struct _PDI{ /*estrutura para pontos de interesse*/
     char *nome_PDI;
     char *descricao;
     char *horario;
-    int popularidade;
+    lista_utilizadores *util; /*lista de utilizadores que preferiram este PDI*/
     local *loc;
 }PDI;
 
@@ -46,6 +46,8 @@ typedef struct _local{ /*estrutura de cada local e respetivos pontos de interess
     int id; /*identificador único*/
     char *nome_local;
     lista_PDIs *pontos;//local tem lista ligada de PDIs
+    lista_utilizadores *util; /*lista de utilizadores que preferiram este local*/
+
 }local;
 
 typedef struct _lista_utilizadores{ /*estrutura para lista de utilizadores*/
@@ -64,6 +66,7 @@ typedef struct _lista_locais{ /*estrutura para lista de locais*/
 }lista_locais;
 
 /*LISTAS LOCAIS*/
+local *pesquisa_local(lista_locais *lista, int id_a_encontrar);
 void elimina_lista_locais(lista_locais *BDlocais);
 void destroi_lista_locais(lista_locais *BDlocais);
 void elimina_local(local *loc);
@@ -72,23 +75,44 @@ lista_locais* cria_lista_locais(local* loc, lista_locais *next);
 local *cria_local(char *nome, lista_locais *BD_locais);
 void inserir_local(lista_locais *lista, local *loc);
 void imprime_lista_locais(lista_locais *lista);
+void imprime_local_pdis(lista_locais *BDlocais);
+void remove_local(lista_locais *BDlocais, int id);
 
 
 /*LISTAS PDIS*/
+PDI *pesquisa_PDI(lista_PDIs *lista, int id_a_encontrar);
 void destroi_lista_PDIs(lista_PDIs *BDPDIs);
 void elimina_PDI(PDI *ponto);
 void elimina_lista_pdis(lista_PDIs *lista);
 lista_PDIs* inicia_lista_PDIs();
 lista_PDIs* cria_lista_PDIs(PDI* ponto, lista_PDIs *next);
-void cria_PDI(char *nome, char *descricao, char *horario, lista_PDIs *BD_PDIs, local *PDI);
+PDI *cria_PDI(char *nome, char *descricao, char *horario, lista_PDIs *BD_PDIs, local *PDI);
 void inserir_PDI(lista_PDIs *lista, PDI *loc);
 void imprime_lista_PDIs(lista_PDIs *lista);
+void remove_PDI(lista_PDIs *BDpdis, int id);
 
+/*LISTAS UTILIZADORES*/
+utilizador *pesquisa_utilizador(lista_utilizadores *lista, int id_a_encontrar);
+void elimina_lista_utlizadores(lista_utilizadores *lista);
+void elimina_utilizador(utilizador *pessoa);
+void remove_utilizador(lista_utilizadores *BDutilizadores, int id);
+void destroi_lista_utilizadores(lista_utilizadores *BDutilizadores);
+lista_utilizadores *inicia_lista_utilizadores();
+lista_utilizadores *cria_lista_utilizadores(utilizador *humano, lista_utilizadores *next);
+utilizador* cria_utilizador(char *nome, char *address, int dia, int mes, int ano, int telefone, lista_utilizadores *BD_utilizadores);
+void inserir_utilizador(lista_utilizadores *lista, utilizador *humano);
+void imprime_lista_utilizadores(lista_utilizadores *lista);
 
+/*menus*/
+void menu_registo(lista_utilizadores *BDutilizadores);
+void menu_escolha_locais(lista_locais *BDlocais, lista_utilizadores *BDutilizadores);
+void menu_escolha_pdis(lista_PDIs *BDPDIs, lista_utilizadores *BDutilizadores);
+void menu_listagens(lista_locais *BDlocais);
 
-
-
-
-
+/*funcoes auxiliares*/
+void remove_nova_linha(char *frase);
+int conta_utilizadores(lista_utilizadores *lista);
+int conta_locais(lista_locais *lista);
+int conta_PDIs(lista_PDIs *lista);
 
 #endif //PROJETO2_0_ESTRUTURAS_H
