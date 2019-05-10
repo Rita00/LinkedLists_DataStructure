@@ -39,6 +39,7 @@ typedef struct _PDI{ /*estrutura para pontos de interesse*/
     char *descricao;
     char *horario;
     lista_utilizadores *util; /*lista de utilizadores que preferiram este PDI*/
+    lista_utilizadores *hot;
     local *loc;
 }PDI;
 
@@ -47,7 +48,6 @@ typedef struct _local{ /*estrutura de cada local e respetivos pontos de interess
     char *nome_local;
     lista_PDIs *pontos;//local tem lista ligada de PDIs
     lista_utilizadores *util; /*lista de utilizadores que preferiram este local*/
-
 }local;
 
 typedef struct _lista_utilizadores{ /*estrutura para lista de utilizadores*/
@@ -77,6 +77,8 @@ void inserir_local(lista_locais *lista, local *loc);
 void imprime_lista_locais(lista_locais *lista);
 void imprime_local_pdis(lista_locais *BDlocais);
 void remove_local(lista_locais *BDlocais, int id);
+void ordena_local_popularidade(lista_locais *lista);
+void ordena_local_alfabetico(lista_locais *lista);
 
 
 /*LISTAS PDIS*/
@@ -108,11 +110,12 @@ void menu_registo(lista_utilizadores *BDutilizadores);
 void menu_escolha_locais(lista_locais *BDlocais, lista_utilizadores *BDutilizadores);
 void menu_escolha_pdis(lista_PDIs *BDPDIs, lista_utilizadores *BDutilizadores);
 void menu_listagens(lista_locais *BDlocais);
+void menu_escolha_pdi_hot(lista_PDIs *BDPDIs, lista_utilizadores *BDutilizadores);
 
 /*funcoes auxiliares*/
 void remove_nova_linha(char *frase);
 int conta_utilizadores(lista_utilizadores *lista);
 int conta_locais(lista_locais *lista);
 int conta_PDIs(lista_PDIs *lista);
-
+lista_locais *menu_local_popularidade(lista_locais *BDlocais);
 #endif //PROJETO2_0_ESTRUTURAS_H
