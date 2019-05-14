@@ -46,6 +46,9 @@ int main() {
     cria_utilizador("dfaf", "faa", 3, 7, 2001, 465327483, BDutilizadores);
     cria_utilizador("adfa", "faf", 65, 3, 3342, 423525, BDutilizadores);
     imprime_lista_utilizadores(BDutilizadores);
+    inserir_local(pesquisa_utilizador(BDutilizadores, 0)->locais_escolhidos, pesquisa_local(BDlocais, 0));
+    inserir_local(pesquisa_utilizador(BDutilizadores, 0)->locais_escolhidos, pesquisa_local(BDlocais, 1));
+    inserir_local(pesquisa_utilizador(BDutilizadores, 0)->locais_escolhidos, pesquisa_local(BDlocais, 2));
     /*carregar informacao do ficheiro para listas ligadas*/
 
     /*criar menus*/
@@ -79,6 +82,7 @@ int main() {
                 menu_escolha_pdi_hot(BDpdis, BDutilizadores);
                 break;
             case 7:
+                menu_viagem(BDutilizadores);
                 break;
             default:
                 break;
@@ -104,6 +108,7 @@ local *pesquisa_local(lista_locais *lista,
     while (lista != NULL && lista->loc->id != id_a_encontrar) {
         lista = lista->next;
     }
+    if(lista == NULL) return NULL;
     return lista->loc;
 }
 
@@ -199,10 +204,8 @@ void imprime_local_pdis(lista_locais *BDlocais) {
         printf("%d\n%s\n", BDlocais->next->loc->id, BDlocais->next->loc->nome_local);
         aux = BDlocais->next->loc->pontos;
         while (aux->next != NULL) {
-            printf("\t%d\n\t%s\n\t%s\n\t%s\n", aux->next->ponto_interesse->id, aux->next->ponto_interesse->nome_PDI,
-                   aux->next->ponto_interesse->descricao, aux->next->ponto_interesse->horario);
+            printf("\t%d\n\t%s\n\t%s\n\t%s\n", aux->next->ponto_interesse->id, aux->next->ponto_interesse->nome_PDI, aux->next->ponto_interesse->descricao, aux->next->ponto_interesse->horario);
             aux = aux->next;
-
         }
         printf("\n");
         BDlocais = BDlocais->next;
@@ -221,6 +224,7 @@ PDI *pesquisa_PDI(lista_PDIs *lista,
     while (lista != NULL && lista->ponto_interesse->id != id_a_encontrar) {
         lista = lista->next;
     }
+    if(lista == NULL) return NULL;
     return lista->ponto_interesse;
 }
 
@@ -375,6 +379,7 @@ utilizador *pesquisa_utilizador(lista_utilizadores *lista,
     while (lista != NULL && lista->pessoa->id != id_a_encontrar) {
         lista = lista->next;
     }
+    if(lista == NULL) return NULL;
     return lista->pessoa;
 }
 
@@ -627,56 +632,23 @@ void menu_escolha_pdi_hot(lista_PDIs *BDPDIs, lista_utilizadores *BDutilizadores
     }
 }
 
-void ordena_local_popularidade(lista_locais *lista) {
-    local *aux;
-    lista_locais *inicial = lista->next;
-    char swapped = 1;/*saltar header*/
-    if (inicial == NULL) return;
-    while (swapped == 1) {
-        swapped = 0;
-        lista = inicial;
-        while (lista->next != NULL) {
-            if (conta_utilizadores(lista->loc->util) < conta_utilizadores(lista->next->loc->util)) {
-                aux = lista->loc;
-                lista->loc = lista->next->loc;
-                lista->next->loc = aux;
-                swapped = 1;
-            }
-            lista = lista->next; /*saltar header*/
+void menu_viagem(lista_utilizadores *BDutilizadores){/*NAO TESTADO ATE FICHEIRO INICIAL LIDO*/
+    int id, i;
+    lista_PDIs* viagem;
+    lista_locais *aux;
+    printf("Qual e o id do utilizador que deseja?\n");
+    scanf("%d", &id);
+    viagem = constroi_viagem(id, BDutilizadores)->next;
+    aux = pesquisa_utilizador(BDutilizadores, id)->locais_escolhidos->next;
+    for (id = 0; id < 3; id++){
+        printf("%d\n%s\n", aux->loc->id, aux->loc->nome_local);
+        for(i = 0; i < 3; i++){
+            printf("\t%d\n\t%s\n\t%s\n\t%s\n", viagem->ponto_interesse->id,viagem->ponto_interesse->nome_PDI, viagem->ponto_interesse->descricao, viagem->ponto_interesse->horario);
+            viagem = viagem->next;
         }
+        aux = aux->next;
     }
 }
-
-void ordena_local_alfabetico(lista_locais *lista) {
-    local *aux;
-    lista_locais *inicial = lista->next;
-    char swapped = 1;/*saltar header*/
-    if (inicial == NULL) return;
-    while (swapped == 1) {
-        swapped = 0;
-        lista = inicial;
-        while (lista->next != NULL) {
-            if (strcasecmp(lista->loc->nome_local, lista->next->loc->nome_local) > 0) {
-                aux = lista->loc;
-                lista->loc = lista->next->loc;
-                lista->next->loc = aux;
-                swapped = 1;
-            }
-            lista = lista->next; /*saltar header*/
-        }
-    }
-}
-
-void ordena_PDIs_popularidade(lista_PDIs *BDPDIs) {
-    lista_PDIs *aux;
-    if (conta_utilizadores((BDPDIs->ponto_interesse->util)) <
-        conta_utilizadores((BDPDIs->next->ponto_interesse->util))) {
-        aux = BDPDIs;
-        BDPDIs = BDPDIs->next;
-        BDPDIs->next = aux;
-    }
-}
-
 /*funcoes auxiliares
  *
  *
@@ -763,4 +735,84 @@ lista_PDIs *constroi_viagem(int id_util, lista_utilizadores *BDutilizadores) {
         }
     }
     return resultado;
+}
+
+void ordena_local_popularidade(lista_locais *lista) {
+    local *aux;
+    lista_locais *inicial = lista->next;
+    char swapped = 1;/*saltar header*/
+    if (inicial == NULL) return;
+    while (swapped == 1) {
+        swapped = 0;
+        lista = inicial;
+        while (lista->next != NULL) {
+            if (conta_utilizadores(lista->loc->util) < conta_utilizadores(lista->next->loc->util)) {
+                aux = lista->loc;
+                lista->loc = lista->next->loc;
+                lista->next->loc = aux;
+                swapped = 1;
+            }
+            lista = lista->next; /*saltar header*/
+        }
+    }
+}
+
+void ordena_local_alfabetico(lista_locais *lista) {
+    local *aux;
+    lista_locais *inicial = lista->next;
+    char swapped = 1;/*saltar header*/
+    if (inicial == NULL) return;
+    while (swapped == 1) {
+        swapped = 0;
+        lista = inicial;
+        while (lista->next != NULL) {
+            if (strcasecmp(lista->loc->nome_local, lista->next->loc->nome_local) > 0) {
+                aux = lista->loc;
+                lista->loc = lista->next->loc;
+                lista->next->loc = aux;
+                swapped = 1;
+            }
+            lista = lista->next; /*saltar header*/
+        }
+    }
+}
+
+void ordena_PDIs_popularidade(lista_PDIs *BDPDIs) {
+    lista_PDIs *aux;
+    if (conta_utilizadores((BDPDIs->ponto_interesse->util)) <
+        conta_utilizadores((BDPDIs->next->ponto_interesse->util))) {
+        aux = BDPDIs;
+        BDPDIs = BDPDIs->next;
+        BDPDIs->next = aux;
+    }
+}
+
+float percentagem_local_preferido(lista_locais *locais_util, lista_utilizadores *BDutilizadores){
+    int cnt = 0, total = 0;
+    float resultado = 0;
+    local *resultado_pesquisa;
+    lista_utilizadores *aux;
+    lista_locais *locais_escolhidos;
+    aux = BDutilizadores->next;
+    while(aux != NULL){ /*ciclo exterior percorre cada utilizador*/
+        locais_escolhidos = aux->pessoa->locais_escolhidos->next;
+        while(locais_escolhidos != NULL){
+            resultado_pesquisa = pesquisa_local(locais_escolhidos,locais_util->loc->id);
+            if(locais_util->loc == resultado_pesquisa || locais_util->next->loc == resultado_pesquisa || locais_util->next->next->loc == resultado_pesquisa){
+                cnt++;
+                break; /*caso ja tenha encontrado local em comum, o ciclo para*/
+            }
+            locais_escolhidos = locais_escolhidos->next;
+        }
+        aux = aux->next;
+    }
+    total = conta_utilizadores(BDutilizadores);
+    resultado = cnt/total*100;
+    return resultado;
+}
+
+int percentagem_PDI_hot(int id_util, lista_utilizadores *BDutilizadores) {
+}
+int percentagem_preferencias_PDI(){
+
 }

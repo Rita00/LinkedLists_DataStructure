@@ -113,6 +113,7 @@ void menu_escolha_locais(lista_locais *BDlocais, lista_utilizadores *BDutilizado
 void menu_escolha_pdis(lista_PDIs *BDPDIs, lista_utilizadores *BDutilizadores);
 void menu_listagens(lista_locais *BDlocais);
 void menu_escolha_pdi_hot(lista_PDIs *BDPDIs, lista_utilizadores *BDutilizadores);
+void menu_viagem(lista_utilizadores *BDutilizadores);
 
 /*funcoes auxiliares*/
 void remove_nova_linha(char *frase);
