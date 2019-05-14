@@ -92,6 +92,8 @@ PDI *cria_PDI(char *nome, char *descricao, char *horario, lista_PDIs *BD_PDIs, l
 void inserir_PDI(lista_PDIs *lista, PDI *loc);
 void imprime_lista_PDIs(lista_PDIs *lista);
 void remove_PDI(lista_PDIs *BDpdis, int id);
+void ordena_PDI_alfabetica(lista_PDIs *lista);
+void ordena_PDI_popularidade(lista_PDIs *lista);
 
 /*LISTAS UTILIZADORES*/
 utilizador *pesquisa_utilizador(lista_utilizadores *lista, int id_a_encontrar);
@@ -118,4 +120,8 @@ int conta_utilizadores(lista_utilizadores *lista);
 int conta_locais(lista_locais *lista);
 int conta_PDIs(lista_PDIs *lista);
 lista_locais *menu_local_popularidade(lista_locais *BDlocais);
+void ordena_PDIs_de_locais_popularidade(lista_locais *lista);
+void ordena_PDIs_de_locais_alfabetica(lista_locais *lista);
+lista_PDIs *constroi_viagem(int id_util, lista_utilizadores *BDutilizadores);
+
 #endif //PROJETO2_0_ESTRUTURAS_H

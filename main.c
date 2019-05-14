@@ -295,6 +295,46 @@ void inserir_PDI(lista_PDIs *lista, PDI *ponto) {
     lista->next = aux_lista;
 }
 
+void ordena_PDI_popularidade(lista_PDIs *lista) {
+    PDI *aux;
+    lista_PDIs *inicial = lista->next;
+    char swapped = 1;/*saltar header*/
+    if (inicial == NULL) return;
+    while (swapped == 1) {
+        swapped = 0;
+        lista = inicial;
+        while (lista->next != NULL) {
+            if (conta_utilizadores(lista->ponto_interesse->util) <
+                conta_utilizadores(lista->next->ponto_interesse->util)) {
+                aux = lista->ponto_interesse;
+                lista->ponto_interesse = lista->next->ponto_interesse;
+                lista->next->ponto_interesse = aux;
+                swapped = 1;
+            }
+            lista = lista->next; /*saltar header*/
+        }
+    }
+}
+
+void ordena_PDI_alfabetica(lista_PDIs *lista) {
+    PDI *aux;
+    lista_PDIs *inicial = lista->next;
+    char swapped = 1;/*saltar header*/
+    if (inicial == NULL) return;
+    while (swapped == 1) {
+        swapped = 0;
+        lista = inicial;
+        while (lista->next != NULL) {
+            if (strcasecmp(lista->ponto_interesse->nome_PDI, lista->next->ponto_interesse->nome_PDI) > 0) {
+                aux = lista->ponto_interesse;
+                lista->ponto_interesse = lista->next->ponto_interesse;
+                lista->next->ponto_interesse = aux;
+                swapped = 1;
+            }
+            lista = lista->next; /*saltar header*/
+        }
+    }
+}
 
 void imprime_lista_PDIs(lista_PDIs *lista) {
     while (lista->next != NULL) {
@@ -539,10 +579,12 @@ void menu_listagens(lista_locais *BDlocais) {
         switch (opcao) {
             case 1:
                 ordena_local_alfabetico(BDlocais);
+                ordena_PDIs_de_locais_alfabetica(BDlocais);
                 imprime_local_pdis(BDlocais);
                 break;
             case 2:
                 ordena_local_popularidade(BDlocais);
+                ordena_PDIs_de_locais_popularidade(BDlocais);
                 imprime_local_pdis(BDlocais);
                 /*LISTAR LOCAIS POR POPULARIDADE*/
                 break;
@@ -557,7 +599,7 @@ void menu_escolha_pdi_hot(lista_PDIs *BDPDIs, lista_utilizadores *BDutilizadores
     int opcao = 1, id_util, id_PDI;
     while (opcao != 0) {
         printf("1- Inserir PDI hot\n");
-        printf("2- Remover PDI got\n");
+        printf("2- Remover PDI hot\n");
         printf("3- Apresentar PDI hot\n");
         printf("0- Sair");
         scanf("%d", &opcao);
@@ -586,9 +628,11 @@ void menu_escolha_pdi_hot(lista_PDIs *BDPDIs, lista_utilizadores *BDutilizadores
 }
 
 void ordena_local_popularidade(lista_locais *lista) {
-    local *aux; lista_locais *inicial = lista->next;
-    char swapped=1;/*saltar header*/
-    while(swapped == 1) {
+    local *aux;
+    lista_locais *inicial = lista->next;
+    char swapped = 1;/*saltar header*/
+    if (inicial == NULL) return;
+    while (swapped == 1) {
         swapped = 0;
         lista = inicial;
         while (lista->next != NULL) {
@@ -604,9 +648,11 @@ void ordena_local_popularidade(lista_locais *lista) {
 }
 
 void ordena_local_alfabetico(lista_locais *lista) {
-    local *aux; lista_locais *inicial = lista->next;
-    char swapped=1;/*saltar header*/
-    while(swapped == 1) {
+    local *aux;
+    lista_locais *inicial = lista->next;
+    char swapped = 1;/*saltar header*/
+    if (inicial == NULL) return;
+    while (swapped == 1) {
         swapped = 0;
         lista = inicial;
         while (lista->next != NULL) {
@@ -645,6 +691,22 @@ void remove_nova_linha(char *frase) {
     }
 }
 
+void ordena_PDIs_de_locais_popularidade(lista_locais *lista) {
+    lista = lista->next;
+    while (lista != NULL) {
+        ordena_PDI_popularidade(lista->loc->pontos);
+        lista = lista->next;
+    }
+}
+
+void ordena_PDIs_de_locais_alfabetica(lista_locais *lista) {
+    lista = lista->next;
+    while (lista != NULL) {
+        ordena_PDI_alfabetica(lista->loc->pontos);
+        lista = lista->next;
+    }
+}
+
 int conta_utilizadores(lista_utilizadores *lista) {
     int cnt = 0;
     for (cnt = 0; lista->next != NULL; cnt++) lista = lista->next;
@@ -661,4 +723,44 @@ int conta_PDIs(lista_PDIs *lista) {
     int cnt = 0;
     for (cnt = 0; lista->next != NULL; cnt++) lista = lista->next;
     return cnt;
+}
+
+lista_PDIs *constroi_viagem(int id_util, lista_utilizadores *BDutilizadores) {
+    int i;
+    utilizador *humano;
+    lista_locais *locais;
+    local *loc;
+    lista_PDIs *aux, *resultado;
+    humano = pesquisa_utilizador(BDutilizadores, id_util);
+    resultado = inicia_lista_PDIs();
+    locais = humano->locais_escolhidos;
+
+    for(i = 1; i < 4; i++){
+        locais = locais->next;
+        loc = locais->loc;
+        aux = loc->pontos->next;
+        while (aux != NULL && conta_PDIs(resultado) < 3*i) { /*Encontra o hot se existir e adiciona-o a lista*/
+            if (aux->ponto_interesse == humano->hot) {
+                inserir_PDI(resultado, aux->ponto_interesse);
+                break;
+            }
+            aux = aux->next;
+        }
+        aux = loc->pontos->next;
+        while (aux != NULL && conta_PDIs(resultado) < 3*i) { /*Verifica se PDI ja esta na lista resultado e se pertence aos preferidos do utilizador*/
+            if (pesquisa_PDI(resultado, aux->ponto_interesse->id) == NULL &&
+                pesquisa_PDI(humano->pdis_preferidos, aux->ponto_interesse->id) != NULL) {
+                inserir_PDI(resultado, aux->ponto_interesse);
+            }
+            aux = aux->next;
+        }
+        aux = loc->pontos->next;
+        while (aux != NULL && conta_PDIs(resultado) < 3*i) { /*Verifica se os pontos ja estao na lista resultado e adiciona se nao*/
+            if (pesquisa_PDI(resultado, aux->ponto_interesse->id) == NULL) {
+                inserir_PDI(resultado, aux->ponto_interesse);
+            }
+            aux = aux->next;
+        }
+    }
+    return resultado;
 }
