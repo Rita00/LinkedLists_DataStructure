@@ -7,8 +7,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define NOME_FICHEIRO "Ficheiro_projeto.txt"
+#define NOME_F_LOCAIS "Ficheiro_projeto.txt"
 #define BUFFER_SIZE 1000
+#define DIM 1000
+#define MAX 1000
+#define MIN 1000
+#define INT_DIM 11
+#define ANO_ATUAL 2019
+#define ANO_INICIAL 1900
+#define N_TEL_MIN 910000000
+#define N_TEL_MAX 969999999
+#define N_TEL_MED_MIN 940000000
+#define N_TEL_MED_MAX 960000000
+#define NOME_F_UTILIZADOR "Ficheiro_utilizador"
 
 typedef struct _PDI PDI;
 typedef struct _local local;
@@ -76,7 +87,7 @@ local *cria_local(char *nome, lista_locais *BD_locais);
 void inserir_local(lista_locais *lista, local *loc);
 void imprime_lista_locais(lista_locais *lista);
 void imprime_local_pdis(lista_locais *BDlocais);
-void remove_local(lista_locais *BDlocais, int id);
+char remove_local(lista_locais *BDlocais, int id);
 void ordena_local_popularidade(lista_locais *lista);
 void ordena_local_alfabetico(lista_locais *lista);
 
@@ -91,7 +102,7 @@ lista_PDIs* cria_lista_PDIs(PDI* ponto, lista_PDIs *next);
 PDI *cria_PDI(char *nome, char *descricao, char *horario, lista_PDIs *BD_PDIs, local *PDI);
 void inserir_PDI(lista_PDIs *lista, PDI *loc);
 void imprime_lista_PDIs(lista_PDIs *lista);
-void remove_PDI(lista_PDIs *BDpdis, int id);
+char remove_PDI(lista_PDIs *BDpdis, int id);
 void ordena_PDI_alfabetica(lista_PDIs *lista);
 void ordena_PDI_popularidade(lista_PDIs *lista);
 
@@ -99,7 +110,7 @@ void ordena_PDI_popularidade(lista_PDIs *lista);
 utilizador *pesquisa_utilizador(lista_utilizadores *lista, int id_a_encontrar);
 void elimina_lista_utlizadores(lista_utilizadores *lista);
 void elimina_utilizador(utilizador *pessoa);
-void remove_utilizador(lista_utilizadores *BDutilizadores, int id);
+char remove_utilizador(lista_utilizadores *BDutilizadores, int id);
 void destroi_lista_utilizadores(lista_utilizadores *BDutilizadores);
 lista_utilizadores *inicia_lista_utilizadores();
 lista_utilizadores *cria_lista_utilizadores(utilizador *humano, lista_utilizadores *next);
@@ -124,5 +135,21 @@ lista_locais *menu_local_popularidade(lista_locais *BDlocais);
 void ordena_PDIs_de_locais_popularidade(lista_locais *lista);
 void ordena_PDIs_de_locais_alfabetica(lista_locais *lista);
 lista_PDIs *constroi_viagem(int id_util, lista_utilizadores *BDutilizadores);
+float percentagem_local_preferido(lista_locais *locais_util, lista_utilizadores *BDutilizadores);
 
+/*protecao dados*/
+inline void clear_input();
+char input_number(int *number);
+inline void input_errors(char erro);
+void get_number(int *num);
+char verifica_data(int dia, int mes, int ano);
+void data_erros(char erro);
+void remove_erros(char erro);
+char verifica_telefone(int telefone);
+
+
+/*ficheiros*/
+void load_ficheiro_locais(lista_locais *BDlocais, lista_PDIs *BDpdis);
+void write_ficheiro_utilizador(lista_utilizadores *BDutilizadores);
+void load_ficheiro_utilizador(lista_utilizadores *BDutilizadores, lista_PDIs *BDPDIs, lista_locais *BDlocais);
 #endif //PROJETO2_0_ESTRUTURAS_H
