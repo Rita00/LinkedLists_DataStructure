@@ -4,6 +4,7 @@
 
 int main() {
     int i, j;
+    printf("olhgfdfd\n");
     local *aux;
     PDI *aux2;
     utilizador *aux3;
