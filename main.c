@@ -8,18 +8,19 @@ int main() {
     PDI *aux2;
     utilizador *aux3;
     int opcao = 1;
-    lista_locais *BDlocais;
+    lista_locais *BDlocais, *BDlocaisPop;
     lista_PDIs *BDpdis;
     lista_utilizadores *BDutilizadores;
     char erro;
     char nome[50], morada[50];
     int dia, mes, ano, telefone;
     BDlocais = inicia_lista_locais();
+    BDlocaisPop = inicia_lista_locais();
     BDpdis = inicia_lista_PDIs();
     BDutilizadores = inicia_lista_utilizadores();
     /*carregar informacao do ficheiro para listas ligadas*/
-    load_ficheiro_locais(BDlocais, BDpdis);
-    load_ficheiro_utilizador(BDutilizadores, BDpdis, BDlocais);
+    load_ficheiro_locais(BDlocais, BDpdis, BDlocaisPop);
+    load_ficheiro_utilizador(BDutilizadores, BDpdis, BDlocais, BDlocaisPop);
     /*codigo de teste*/
     /*cria utilizadores para teste*/
     /*for(i = 0; i < 10; i++){
@@ -60,19 +61,20 @@ int main() {
         printf("6- Escolha pdi hot\n");
         printf("7- Construir viagem\n");
         printf("0- Sair\n");
+        //scanf("%d", &opcao);
         get_number(&opcao);
         switch (opcao) {
             case 1:
                 menu_registo(BDutilizadores);
                 break;
             case 2:
-                menu_listagens(BDlocais);
+                menu_listagens(BDlocais, BDlocaisPop);
                 break;
             case 3:
                 imprime_lista_utilizadores(BDutilizadores);
                 break;
             case 4:
-                menu_escolha_locais(BDlocais, BDutilizadores);
+                menu_escolha_locais(BDlocais, BDutilizadores, BDlocaisPop);
                 break;
             case 5:
                 menu_escolha_pdis(BDpdis, BDutilizadores);
@@ -81,7 +83,7 @@ int main() {
                 menu_escolha_pdi_hot(BDpdis, BDutilizadores);
                 break;
             case 7:
-                menu_viagem(BDutilizadores);
+                menu_viagem(BDutilizadores, BDpdis);
                 break;
             default:
                 break;
@@ -142,6 +144,7 @@ void destroi_lista_locais(lista_locais *BDlocais) {
 
 lista_locais *inicia_lista_locais() {
     lista_locais *aux = (lista_locais *) calloc(sizeof(lista_locais), 1);
+    if(aux == NULL) return NULL;
     aux->loc = 0;
     aux->next = NULL;
     return aux;
@@ -149,6 +152,7 @@ lista_locais *inicia_lista_locais() {
 
 lista_locais *cria_lista_locais(local *loc, lista_locais *next) {
     lista_locais *aux = (lista_locais *) calloc(sizeof(lista_locais), 1);
+    if(aux == NULL) return NULL;
     aux->loc = loc;
     aux->next = next;
     return aux;
@@ -160,13 +164,26 @@ local *cria_local(char *nome, lista_locais *BD_locais) { /*usar para carregar da
     id = (long) BD_locais->loc / sizeof(local);/*loc is pointer and is incremented every 24 bytes in a 64-bits machine*/
     BD_locais->loc++;
     aux = (local *) calloc(sizeof(local), 1);
+    if(aux == NULL) return NULL;
     aux->nome_local = strdup(
             nome); /*aloca memoria para string passada como argumento e devolve o seu ponteiro, guardando na estrutura local*/
     aux->id = id;
     aux->pontos = inicia_lista_PDIs();
+    aux->pontospop = inicia_lista_PDIs();
     aux->util = inicia_lista_utilizadores();
     inserir_local(BD_locais, aux);
     return aux;
+}
+
+void inserir_local_pop(lista_locais* lista, local *loc){
+    lista_locais *aux_lista;
+    /**/
+    while (lista->next != NULL && lista->loc != NULL && conta_utilizadores(lista->loc->util) > conta_utilizadores(lista->next->loc->util)) {
+        lista = lista->next;
+        /*desnecessario verificar se IDs iguais, porque gerados pelo programa*/
+    }
+    aux_lista = cria_lista_locais(loc, lista->next);
+    lista->next = aux_lista;
 }
 
 void inserir_local(lista_locais *lista, local *loc) {
@@ -195,7 +212,7 @@ void apaga_local(lista_locais *BDlocais, int id) {
 
 char remove_local(lista_locais *BDlocais, int id) {
     lista_locais *aux;
-    if(pesquisa_local(BDlocais,id) == NULL) return 1;
+    if (pesquisa_local(BDlocais, id) == NULL) return 1;
     while (BDlocais->next != NULL && BDlocais->next->loc->id != id) {
         BDlocais = BDlocais->next;
     }
@@ -204,8 +221,6 @@ char remove_local(lista_locais *BDlocais, int id) {
     BDlocais->next = aux;
     return 0;
 }
-
-
 
 void imprime_lista_locais(lista_locais *lista) {
     while (lista->next != NULL) {
@@ -226,6 +241,21 @@ void imprime_local_pdis(lista_locais *BDlocais) {
         }
         printf("\n");
         BDlocais = BDlocais->next;
+    }
+}
+
+void imprime_local_pdis_pop(lista_locais *BDlocaispop) {
+    lista_PDIs *aux;
+    while (BDlocaispop->next != NULL) {
+        printf("%d\n%s\n", BDlocaispop->next->loc->id, BDlocaispop->next->loc->nome_local);
+        aux = BDlocaispop->next->loc->pontospop;
+        while (aux->next != NULL) {
+            printf("\t%d\n\t%s\n\t%s\n\t%s\n", aux->next->ponto_interesse->id, aux->next->ponto_interesse->nome_PDI,
+                   aux->next->ponto_interesse->descricao, aux->next->ponto_interesse->horario);
+            aux = aux->next;
+        }
+        printf("\n");
+        BDlocaispop = BDlocaispop->next;
     }
 }
 
@@ -274,6 +304,7 @@ void destroi_lista_PDIs(lista_PDIs *BDPDIs) {
 
 lista_PDIs *inicia_lista_PDIs() {
     lista_PDIs *aux = (lista_PDIs *) calloc(sizeof(lista_PDIs), 1);
+    if(aux == NULL) return NULL;
     aux->ponto_interesse = 0;
     aux->next = NULL;
     return aux;
@@ -281,6 +312,7 @@ lista_PDIs *inicia_lista_PDIs() {
 
 lista_PDIs *cria_lista_PDIs(PDI *ponto, lista_PDIs *next) {
     lista_PDIs *aux = (lista_PDIs *) calloc(sizeof(lista_PDIs), 1);
+    if(aux == NULL) return NULL;
     aux->ponto_interesse = ponto;
     aux->next = next;
     return aux;
@@ -293,6 +325,7 @@ PDI *cria_PDI(char *nome, char *descricao, char *horario, lista_PDIs *BD_PDIs,
     id = (long) BD_PDIs->ponto_interesse / sizeof(PDI);
     BD_PDIs->ponto_interesse++;
     aux = (PDI *) calloc(sizeof(PDI), 1);
+    if(aux == NULL) return NULL;
     aux->nome_PDI = strdup(
             nome); /*aloca memoria para string passada como argumento e devolve o seu ponteiro, guardando na estrutura local*/
     aux->descricao = strdup(descricao);
@@ -303,6 +336,7 @@ PDI *cria_PDI(char *nome, char *descricao, char *horario, lista_PDIs *BD_PDIs,
     aux->hot = inicia_lista_utilizadores();
     inserir_PDI(BD_PDIs, aux);
     inserir_PDI(loc->pontos, aux);
+    inserir_PDI(loc->pontospop, aux);
     return aux;
 }
 
@@ -388,7 +422,7 @@ void apaga_PDI(lista_PDIs *BDpdis, int id) {
 
 char remove_PDI(lista_PDIs *BDpdis, int id) {
     lista_PDIs *aux;
-    if(pesquisa_PDI(BDpdis,id) == NULL) return 1;
+    if (pesquisa_PDI(BDpdis, id) == NULL) return 1;
     while (BDpdis->next != NULL && BDpdis->next->ponto_interesse->id != id) {
         BDpdis = BDpdis->next;
     }
@@ -431,7 +465,8 @@ void elimina_utilizador(utilizador *pessoa) {
     free(pessoa);
 }
 
-void apaga_utilizador(lista_utilizadores *BDutilizadores, int id) {/*Devolve 1 caso o id que procuramos nao exista e 0 caso contrario*/
+void apaga_utilizador(lista_utilizadores *BDutilizadores,
+                      int id) {/*Devolve 1 caso o id que procuramos nao exista e 0 caso contrario*/
     lista_utilizadores *aux;
     while (BDutilizadores->next != NULL && BDutilizadores->next->pessoa->id != id) {
         BDutilizadores = BDutilizadores->next;
@@ -469,6 +504,7 @@ void destroi_lista_utilizadores(lista_utilizadores *BDutilizadores) {
 
 lista_utilizadores *inicia_lista_utilizadores() {
     lista_utilizadores *aux = (lista_utilizadores *) calloc(sizeof(lista_utilizadores), 1);
+    if(aux == NULL) return NULL;
     aux->pessoa = 0;
     aux->next = NULL;
     return aux;
@@ -476,6 +512,7 @@ lista_utilizadores *inicia_lista_utilizadores() {
 
 lista_utilizadores *cria_lista_utilizadores(utilizador *humano, lista_utilizadores *next) {
     lista_utilizadores *aux = (lista_utilizadores *) calloc(sizeof(lista_utilizadores), 1);
+    if(aux == NULL) return NULL;
     aux->pessoa = humano;
     aux->next = next;
     return aux;
@@ -488,8 +525,8 @@ utilizador *cria_utilizador(char *nome, char *address, int dia, int mes, int ano
     id = (long) BD_utilizadores->pessoa / sizeof(utilizador);
     BD_utilizadores->pessoa++;
     aux = (utilizador *) calloc(sizeof(utilizador), 1);
-    aux->nome_utilizador = strdup(
-            nome); /*aloca memoria para string passada como argumento e devolve o seu ponteiro, guardando na estrutura local*/
+    if(aux == NULL) return NULL;
+    aux->nome_utilizador = strdup(nome); /*aloca memoria para string passada como argumento e devolve o seu ponteiro, guardando na estrutura local*/
     aux->morada = strdup(address);
     aux->id = id;
     aux->locais_escolhidos = inicia_lista_locais();
@@ -552,15 +589,15 @@ void menu_registo(lista_utilizadores *BDutilizadores) {
         erro_data = verifica_data(dia, mes, ano);
         if (erro_data) data_erros(erro_data);
     } while (erro_data);
-    do{
+    do {
         printf("Insira o seu contacto telefonico\n");
         get_number(&telefone);
         erro_telefone = verifica_telefone(telefone);
-    }while(erro_telefone != 0);
+    } while (erro_telefone != 0);
     cria_utilizador(nome, morada, dia, mes, ano, telefone, BDutilizadores);
 }
 
-void menu_escolha_locais(lista_locais *BDlocais, lista_utilizadores *BDutilizadores) {
+void menu_escolha_locais(lista_locais *BDlocais, lista_utilizadores *BDutilizadores, lista_locais *BDlocaisPop) {
     int id_util, id_local, opcao = 1;
     char erro;
     while (opcao != 0) {
@@ -572,16 +609,16 @@ void menu_escolha_locais(lista_locais *BDlocais, lista_utilizadores *BDutilizado
         if (opcao == 0) break;
         printf("Qual o id do utilizador que deseja?\n");
         get_number(&id_util);
-        if(!pesquisa_utilizador(BDutilizadores, id_util)){
+        if (!pesquisa_utilizador(BDutilizadores, id_util)) {
             printf("Utilizador inxesistente\n");
             return;
         }
         switch (opcao) {
             case 1:
-                if(conta_locais(pesquisa_utilizador(BDutilizadores, id_util)->locais_escolhidos) < 3){
+                if (conta_locais(pesquisa_utilizador(BDutilizadores, id_util)->locais_escolhidos) < 3) {
                     printf("Qual o id do local que deseja?\n");
                     get_number(&id_local);
-                    if(!pesquisa_local(BDlocais, id_local)){
+                    if (!pesquisa_local(BDlocais, id_local)) {
                         printf("Local inexistente\n");
                         return;
                     }
@@ -589,24 +626,24 @@ void menu_escolha_locais(lista_locais *BDlocais, lista_utilizadores *BDutilizado
                                   pesquisa_local(BDlocais, id_local));
                     inserir_utilizador(pesquisa_local(BDlocais, id_local)->util,
                                        pesquisa_utilizador(BDutilizadores, id_util));
-                }
-                else{
+                    ordena_localpop(id_local, BDlocaisPop);
+                } else {
                     printf("Nao pode escolher mais locais\n");
                 }
                 break;
             case 2:
-                if(conta_locais(pesquisa_utilizador(BDutilizadores, id_util)->locais_escolhidos) > 0){
+                if (conta_locais(pesquisa_utilizador(BDutilizadores, id_util)->locais_escolhidos) > 0) {
                     printf("Qual o id do local que deseja?\n");
                     get_number(&id_local);
-                    if(!pesquisa_local(BDlocais, id_local)) {
+                    if (!pesquisa_local(BDlocais, id_local)) {
                         printf("Local inexistente\n");
                         return;
                     }
                     erro = remove_local(pesquisa_utilizador(BDutilizadores, id_util)->locais_escolhidos, id_local);
-                    if(!erro){
+                    if (!erro) {
                         remove_utilizador(pesquisa_local(BDlocais, id_local)->util, id_util); /*NAO TESTADO*/
-                    }
-                    else remove_erros(erro);
+                        ordena_localpop(id_local, BDlocaisPop);
+                    } else printf("Local inexixtente\n");
                 }
                 break;;
             case 3:
@@ -637,15 +674,22 @@ void menu_escolha_pdis(lista_PDIs *BDPDIs, lista_utilizadores *BDutilizadores) {
                             pesquisa_PDI(BDPDIs, id_PDI));
                 inserir_utilizador(pesquisa_PDI(BDPDIs, id_PDI)->util,
                                    pesquisa_utilizador(BDutilizadores, id_util));
+                ordena_PDIpop(id_PDI, pesquisa_PDI(BDPDIs, id_PDI)->loc->pontospop);
                 break;
             case 2:
                 printf("Qual o id do PDI que deseja?\n");
                 get_number(&id_PDI);
-                remove_PDI(pesquisa_utilizador(BDutilizadores, id_util)->pdis_preferidos, id_PDI);
-                remove_utilizador(pesquisa_PDI(BDPDIs, id_PDI)->util, id_util);
+                if (pesquisa_PDI(pesquisa_utilizador(BDutilizadores, id_util)->pdis_preferidos, id_PDI) == NULL) {
+                    printf("Sem PDI selecionado\n");
+                } else {
+                    remove_PDI(pesquisa_utilizador(BDutilizadores, id_util)->pdis_preferidos, id_PDI);
+                    remove_utilizador(pesquisa_PDI(BDPDIs, id_PDI)->util, id_util);
+                    ordena_PDIpop(id_PDI, pesquisa_PDI(BDPDIs, id_PDI)->loc->pontospop);
+                }
                 break;
             case 3:
-                imprime_lista_PDIs(pesquisa_utilizador(BDutilizadores, id_util)->pdis_preferidos);
+                if (pesquisa_utilizador(BDutilizadores, id_util)->pdis_preferidos != NULL) imprime_lista_PDIs(pesquisa_utilizador(BDutilizadores, id_util)->pdis_preferidos);
+                else printf("Sem PDI selecionado\n");
                 break;
             default:
                 break;
@@ -653,7 +697,7 @@ void menu_escolha_pdis(lista_PDIs *BDPDIs, lista_utilizadores *BDutilizadores) {
     }
 }
 
-void menu_listagens(lista_locais *BDlocais) {
+void menu_listagens(lista_locais *BDlocais, lista_locais *BDlocaisPop) {
     int opcao = 1;
     while (opcao != 0) {
         printf("1- Listagem por ordem alfabetica\n");
@@ -662,14 +706,14 @@ void menu_listagens(lista_locais *BDlocais) {
         get_number(&opcao);
         switch (opcao) {
             case 1:
-                ordena_local_alfabetico(BDlocais);
-                ordena_PDIs_de_locais_alfabetica(BDlocais);
+                /*ordena_local_alfabetico(BDlocais);
+                ordena_PDIs_de_locais_alfabetica(BDlocais);*/
                 imprime_local_pdis(BDlocais);
                 break;
             case 2:
-                ordena_local_popularidade(BDlocais);
-                ordena_PDIs_de_locais_popularidade(BDlocais);
-                imprime_local_pdis(BDlocais);
+                /*ordena_local_popularidade(BDlocais);
+                ordena_PDIs_de_locais_popularidade(BDlocais);*/
+                imprime_local_pdis_pop(BDlocaisPop);
                 /*LISTAR LOCAIS POR POPULARIDADE*/
                 break;
             default:
@@ -698,27 +742,34 @@ void menu_escolha_pdi_hot(lista_PDIs *BDPDIs, lista_utilizadores *BDutilizadores
                 inserir_utilizador(pesquisa_PDI(BDPDIs, id_PDI)->hot, pesquisa_utilizador(BDutilizadores, id_util));
                 break;
             case 2:
-                printf("Qual o id do PDI que deseja?\n");
-                get_number(&id_PDI);
-                pesquisa_utilizador(BDutilizadores, id_util)->hot = NULL;
-                remove_utilizador(pesquisa_PDI(BDPDIs, id_PDI)->hot, id_util);
+                if (pesquisa_utilizador(BDutilizadores, id_util)->hot == NULL) {
+                    printf("Sem PDI hot selecionado\n");
+                } else {
+                    remove_utilizador(pesquisa_PDI(BDPDIs, pesquisa_utilizador(BDutilizadores, id_util)->hot->id)->hot, id_util);
+                    pesquisa_utilizador(BDutilizadores, id_util)->hot = NULL;
+                }
                 break;
             case 3:
-                imprime_PDI_hot(id_util, BDutilizadores);
+                if (pesquisa_utilizador(BDutilizadores, id_util)->hot != NULL) imprime_PDI_hot(id_util, BDutilizadores);
+                else printf("Sem PDI hot selecionado\n");
             default:
                 break;
         }
     }
 }
 
-void menu_viagem(lista_utilizadores *BDutilizadores) {/*NAO TESTADO ATE FICHEIRO INICIAL LIDO*/
+void menu_viagem(lista_utilizadores *BDutilizadores, lista_PDIs *BDPDIs) {/*NAO TESTADO ATE FICHEIRO INICIAL LIDO*/
     int id, i;
-    lista_PDIs *viagem;
+    lista_PDIs *viagem, *viagem_cabecalho;
     lista_locais *aux;
     printf("Qual e o id do utilizador que deseja?\n");
     get_number(&id);
-    if(conta_locais(pesquisa_utilizador(BDutilizadores, id)->locais_escolhidos) != 3){printf("Este utilizador ainda não escolheu 3 locais preferidos\n"); return;}
+    if (conta_locais(pesquisa_utilizador(BDutilizadores, id)->locais_escolhidos) != 3) {
+        printf("Este utilizador ainda não escolheu 3 locais preferidos\n");
+        return;
+    }
     viagem = constroi_viagem(id, BDutilizadores)->next;
+    viagem_cabecalho = viagem;
     aux = pesquisa_utilizador(BDutilizadores, id)->locais_escolhidos->next;
     for (id = 0; id < 3; id++) {
         printf("%d\n%s\n", aux->loc->id, aux->loc->nome_local);
@@ -729,7 +780,10 @@ void menu_viagem(lista_utilizadores *BDutilizadores) {/*NAO TESTADO ATE FICHEIRO
         }
         aux = aux->next;
     }
-    printf("%f\n", percentagem_local_preferido(pesquisa_utilizador(BDutilizadores, id)->locais_escolhidos, BDutilizadores));
+    printf("%f\n",
+           percentagem_local_preferido(pesquisa_utilizador(BDutilizadores, id)->locais_escolhidos, BDutilizadores) +
+           percentagem_PDI_hot(BDutilizadores, viagem_cabecalho) +
+           percentagem_preferencias_PDI(BDPDIs, viagem_cabecalho) / 3);
 }
 
 /*funcoes auxiliares
@@ -874,13 +928,15 @@ void ordena_PDIs_popularidade(lista_PDIs *BDPDIs) {
 
 float percentagem_local_preferido(lista_locais *locais_util, lista_utilizadores *BDutilizadores) { /*nao testado*/
     int cnt = 0, total = 0;
+    lista_utilizadores *lista = BDutilizadores;
     lista_locais *locais_escolhidos;
     BDutilizadores = BDutilizadores->next;
     locais_util = locais_util->next;
     while (BDutilizadores != NULL) { /*ciclo exterior percorre cada utilizador*/
         locais_escolhidos = BDutilizadores->pessoa->locais_escolhidos->next;/*locais escolhidos é no da lista de locais de cada utilizador*/
         while (locais_escolhidos != NULL) {
-            if (locais_util->loc == locais_escolhidos->loc || locais_util->next->loc == locais_escolhidos->loc || locais_util->next->next->loc == locais_escolhidos->loc) {
+            if (locais_util->loc == locais_escolhidos->loc || locais_util->next->loc == locais_escolhidos->loc ||
+                locais_util->next->next->loc == locais_escolhidos->loc) {
                 cnt++;
                 break; /*caso ja tenha encontrado local em comum, o ciclo para*/
             }
@@ -888,33 +944,40 @@ float percentagem_local_preferido(lista_locais *locais_util, lista_utilizadores 
         }
         BDutilizadores = BDutilizadores->next;
     }
-    total = conta_utilizadores(BDutilizadores);
-    return (float)cnt / (float)total * 100;
+    total = conta_utilizadores(lista);
+    return (float) cnt / (float) total * 100;
 }
 
 float percentagem_PDI_hot(lista_utilizadores *BDutilizadores, lista_PDIs *viagem) {
     int cnt = 0, total;
+    lista_utilizadores *lista = BDutilizadores;
     BDutilizadores = BDutilizadores->next;
-    while(BDutilizadores != NULL){
-        if(BDutilizadores->pessoa->hot != NULL && pesquisa_PDI(viagem, BDutilizadores->pessoa->hot->id) != NULL){
-        cnt++;
+    while (BDutilizadores != NULL) {
+        if (BDutilizadores->pessoa->hot != NULL && pesquisa_PDI(viagem, BDutilizadores->pessoa->hot->id) != NULL) {
+            cnt++;
         }
         BDutilizadores = BDutilizadores->next;
     }
-    total = conta_utilizadores(BDutilizadores);
-    return (float)cnt/(float)total*100;
+    total = conta_utilizadores(lista);
+    return (float) cnt / (float) total * 100;
 }
 
-float percentagem_preferencias_PDI(lista_PDIs *BDPDIs, lista_PDIs *viagem){
+float percentagem_preferencias_PDI(lista_PDIs *BDPDIs, lista_PDIs *viagem) {
     int cnt_pdis_viagem = 0, cnt_total_pdis = 0;
     BDPDIs = BDPDIs->next;
-    while(BDPDIs != NULL){
-        cnt_pdis_viagem+= conta_PDIs(viagem);
-        cnt_total_pdis
+    viagem = viagem->next;
+    while (viagem != NULL) {
+        cnt_pdis_viagem += conta_PDIs(viagem);
+        viagem = viagem->next;
     }
+    while (BDPDIs != NULL) {
+        cnt_total_pdis += conta_PDIs(BDPDIs);
+        BDPDIs = BDPDIs->next;
+    }
+    return (float) cnt_pdis_viagem / (float) cnt_total_pdis * 100;
 }
 
-inline void clear_input() {
+void clear_input() {
     char aux;
     do {
         aux = (char) getchar();
@@ -937,7 +1000,7 @@ char input_number(int *number) {
     return -1; /*returns 0 if input started by a number but had more than it*/
 }
 
-inline void input_errors(char erro) {
+void input_errors(char erro) {
     switch (erro) {
         case -1:
             printf("Caracteres invalidos no final do input\n");
@@ -961,8 +1024,7 @@ void get_number(int *num) {
     do {
         erro = input_number(num);
         input_errors(erro);
-    }
-    while (erro != 1);
+    } while (erro != 1);
 }
 
 char verifica_data(int dia, int mes, int ano) {
@@ -994,21 +1056,16 @@ void data_erros(char erro) {
     }
 }
 
-void remove_erros(char erro){
-    if (erro != 0) printf("Operacao invalida\n");
-}
-
-char verifica_telefone(int telefone){
-    if (telefone < N_TEL_MIN || (telefone > N_TEL_MED_MIN && telefone < N_TEL_MED_MAX) || telefone > N_TEL_MAX){
+char verifica_telefone(int telefone) {
+    if (telefone < N_TEL_MIN || (telefone > N_TEL_MED_MIN && telefone < N_TEL_MED_MAX) || telefone > N_TEL_MAX) {
         printf("Numero de telefone invalido\n");
         return 1;
     }
     return 0;
 }
 
-
 /*FICHEIROS*/
-void load_ficheiro_locais(lista_locais *BDlocais, lista_PDIs *BDpdis) {
+void load_ficheiro_locais(lista_locais *BDlocais, lista_PDIs *BDpdis, lista_locais *BDlocaisPop) {
     FILE *fp;
     fp = fopen(NOME_F_LOCAIS, "r");
     int i, n_pdis;
@@ -1018,6 +1075,7 @@ void load_ficheiro_locais(lista_locais *BDlocais, lista_PDIs *BDpdis) {
     char descricao[DIM];
     char horario[MIN];
     local *loc;
+    PDI *ponto;
     if (fp == NULL) printf("Ficheiro Inexistente");
     else {
         while (!feof(fp)) {
@@ -1026,6 +1084,7 @@ void load_ficheiro_locais(lista_locais *BDlocais, lista_PDIs *BDpdis) {
             strcpy(cidade, strtok(linha, "|"));
             n_pdis = atoi(strtok(NULL, "\n"));
             loc = cria_local(cidade, BDlocais);
+            inserir_local(BDlocaisPop, loc); /*INSTRUCAO PARA LISTA DE POPULARIDADE*/
             i = 0;
             while (i != n_pdis) {
                 fgets(linha, 1000, fp);
@@ -1079,7 +1138,7 @@ void write_ficheiro_utilizador(lista_utilizadores *BDutilizadores) {
     fclose(fp);
 }
 
-void load_ficheiro_utilizador(lista_utilizadores *BDutilizadores, lista_PDIs *BDPDIs, lista_locais *BDlocais) {
+void load_ficheiro_utilizador(lista_utilizadores *BDutilizadores, lista_PDIs *BDPDIs, lista_locais *BDlocais, lista_locais *BDlocaisPop) {
     FILE *fp;
     int n;
     int i;
@@ -1092,7 +1151,7 @@ void load_ficheiro_utilizador(lista_utilizadores *BDutilizadores, lista_PDIs *BD
     fp = fopen(NOME_F_UTILIZADOR, "r");
     if (fp == NULL) return;
     fscanf(fp, "%d%c", &n, &verify);
-    if(verify == '\r') fscanf(fp, "%c", &verify);
+    if (verify == '\r') fscanf(fp, "%c", &verify);
     for (i = 0; i < n; i++) {
         /*cria_utilizador com informacao base*/
         fgets(buffer, BUFFER_SIZE, fp);
@@ -1102,7 +1161,8 @@ void load_ficheiro_utilizador(lista_utilizadores *BDutilizadores, lista_PDIs *BD
         sscanf(auxbuffer, "%d/%d/%d", &dia, &mes, &ano);
         auxbuffer = strtok(NULL, "|");
         sscanf(auxbuffer, "%d", &telefone);
-        util = cria_utilizador(nome, morada, dia, mes, ano, telefone, BDutilizadores); /*guarda id de utilizador mais recentemente criado*/
+        util = cria_utilizador(nome, morada, dia, mes, ano, telefone,
+                               BDutilizadores); /*guarda id de utilizador mais recentemente criado*/
         /*adiciona pdi hot ao utilizador*/
         auxbuffer = strtok(NULL, "\n");
         sscanf(auxbuffer, "%d", &id_aux);
@@ -1113,19 +1173,61 @@ void load_ficheiro_utilizador(lista_utilizadores *BDutilizadores, lista_PDIs *BD
         /*insere_locais preferidos do utilizador*/
         do {
             fscanf(fp, "%d%c", &id_aux, &verify);
-            if(verify == '\r') fscanf(fp, "%c", &verify);
+            if (verify == '\r') fscanf(fp, "%c", &verify);
             if (id_aux == -1) break;
             inserir_local(util->locais_escolhidos, pesquisa_local(BDlocais, id_aux));
             inserir_utilizador(pesquisa_local(BDlocais, id_aux)->util, util);
+            ordena_localpop(id_aux, BDlocaisPop);
         } while (verify != '\n' && verify != '\r');
         /*insere pdis preferidos do utilizador*/
         do {
             fscanf(fp, "%d%c", &id_aux, &verify);
-            if(verify == '\r') fscanf(fp, "%c", &verify);
+            if (verify == '\r') fscanf(fp, "%c", &verify);
             if (id_aux == -1) break;
             inserir_PDI(util->pdis_preferidos, pesquisa_PDI(BDPDIs, id_aux));
             inserir_utilizador(pesquisa_PDI(BDPDIs, id_aux)->util, util);
+            ordena_PDIpop(id_aux, pesquisa_PDI(BDPDIs, id_aux)->loc->pontospop);
         } while (verify != '\n' && verify != '\r');
     }
     fclose(fp);
 }
+
+void ordena_localpop(int id_local, lista_locais *BDlocaisPop){
+    lista_locais *posicao_correta, *aux;
+    posicao_correta = BDlocaisPop;
+    while(BDlocaisPop->next != NULL && BDlocaisPop->next->loc->id != id_local){
+        BDlocaisPop = BDlocaisPop->next;
+    }
+    while(posicao_correta->next!= NULL && conta_utilizadores(posicao_correta->next->loc->util) > conta_utilizadores(BDlocaisPop->next->loc->util)){
+        posicao_correta = posicao_correta->next;
+    }
+    if(BDlocaisPop == posicao_correta) return;
+    aux = BDlocaisPop->next->next;
+    BDlocaisPop->next->next = posicao_correta->next;
+    posicao_correta->next = BDlocaisPop->next;
+    BDlocaisPop->next = aux;
+}
+
+void ordena_PDIpop(int id_pdi, lista_PDIs *lista){
+    lista_PDIs *posicao_correta, *aux;
+    posicao_correta = lista;
+    while(lista->next != NULL && lista->next->ponto_interesse->id != id_pdi){
+        lista = lista->next;
+    }
+    while(posicao_correta->next!= NULL && conta_utilizadores(posicao_correta->next->ponto_interesse->util) > conta_utilizadores(lista->next->ponto_interesse->util)){
+        posicao_correta = posicao_correta->next;
+    }
+    if(lista == posicao_correta) return;
+    aux = lista->next->next;
+    lista->next->next = posicao_correta->next;
+    posicao_correta->next = lista->next;
+    lista->next = aux;
+}
+
+
+
+
+
+
+
+

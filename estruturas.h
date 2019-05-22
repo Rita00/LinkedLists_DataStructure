@@ -1,7 +1,3 @@
-//
-// Created by rilap on 01/05/2019.
-//
-
 #ifndef PROJETO2_0_ESTRUTURAS_H
 #define PROJETO2_0_ESTRUTURAS_H
 #include <stdio.h>
@@ -58,6 +54,7 @@ typedef struct _local{ /*estrutura de cada local e respetivos pontos de interess
     int id; /*identificador único*/
     char *nome_local;
     lista_PDIs *pontos;//local tem lista ligada de PDIs
+    lista_PDIs *pontospop;
     lista_utilizadores *util; /*lista de utilizadores que preferiram este local*/
 }local;
 
@@ -120,11 +117,11 @@ void imprime_lista_utilizadores(lista_utilizadores *lista);
 
 /*menus*/
 void menu_registo(lista_utilizadores *BDutilizadores);
-void menu_escolha_locais(lista_locais *BDlocais, lista_utilizadores *BDutilizadores);
+void menu_escolha_locais(lista_locais *BDlocais, lista_utilizadores *BDutilizadores, lista_locais *BDlocaisPop);
 void menu_escolha_pdis(lista_PDIs *BDPDIs, lista_utilizadores *BDutilizadores);
-void menu_listagens(lista_locais *BDlocais);
+void menu_listagens(lista_locais *BDlocais, lista_locais *BDlocaisPop);
 void menu_escolha_pdi_hot(lista_PDIs *BDPDIs, lista_utilizadores *BDutilizadores);
-void menu_viagem(lista_utilizadores *BDutilizadores);
+void menu_viagem(lista_utilizadores *BDutilizadores, lista_PDIs *BDPDIs);
 
 /*funcoes auxiliares*/
 void remove_nova_linha(char *frase);
@@ -136,11 +133,13 @@ void ordena_PDIs_de_locais_popularidade(lista_locais *lista);
 void ordena_PDIs_de_locais_alfabetica(lista_locais *lista);
 lista_PDIs *constroi_viagem(int id_util, lista_utilizadores *BDutilizadores);
 float percentagem_local_preferido(lista_locais *locais_util, lista_utilizadores *BDutilizadores);
+float percentagem_PDI_hot(lista_utilizadores *BDutilizadores, lista_PDIs *viagem);
+float percentagem_preferencias_PDI(lista_PDIs *BDPDIs, lista_PDIs *viagem);
 
 /*protecao dados*/
-inline void clear_input();
+void clear_input();
 char input_number(int *number);
-inline void input_errors(char erro);
+void input_errors(char erro);
 void get_number(int *num);
 char verifica_data(int dia, int mes, int ano);
 void data_erros(char erro);
@@ -149,7 +148,13 @@ char verifica_telefone(int telefone);
 
 
 /*ficheiros*/
-void load_ficheiro_locais(lista_locais *BDlocais, lista_PDIs *BDpdis);
+void load_ficheiro_locais(lista_locais *BDlocais, lista_PDIs *BDpdis, lista_locais *BDlocaisPop);
 void write_ficheiro_utilizador(lista_utilizadores *BDutilizadores);
-void load_ficheiro_utilizador(lista_utilizadores *BDutilizadores, lista_PDIs *BDPDIs, lista_locais *BDlocais);
+void load_ficheiro_utilizador(lista_utilizadores *BDutilizadores, lista_PDIs *BDPDIs, lista_locais *BDlocais, lista_locais *BDlocaisPop);
+
+
+
+
+void ordena_localpop(int id_local, lista_locais *BDlocaisPop);
+void ordena_PDIpop(int id_pdi, lista_PDIs *lista);
 #endif //PROJETO2_0_ESTRUTURAS_H
