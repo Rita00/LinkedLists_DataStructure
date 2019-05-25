@@ -83,7 +83,7 @@ lista_locais* cria_lista_locais(local* loc, lista_locais *next);
 local *cria_local(char *nome, lista_locais *BD_locais);
 void inserir_local(lista_locais *lista, local *loc);
 void imprime_lista_locais(lista_locais *lista);
-void imprime_local_pdis(lista_locais *BDlocais);
+void imprime_local_pdis_alfabetica(lista_locais *BDlocais);
 char remove_local(lista_locais *BDlocais, int id);
 void ordena_local_popularidade(lista_locais *lista);
 void ordena_local_alfabetico(lista_locais *lista);
@@ -143,7 +143,6 @@ void input_errors(char erro);
 void get_number(int *num);
 char verifica_data(int dia, int mes, int ano);
 void data_erros(char erro);
-void remove_erros(char erro);
 char verifica_telefone(int telefone);
 
 

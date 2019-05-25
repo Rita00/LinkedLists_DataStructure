@@ -229,12 +229,13 @@ void imprime_lista_locais(lista_locais *lista) {
     }
 }
 
-void imprime_local_pdis(lista_locais *BDlocais) {
+void imprime_local_pdis_alfabetica(lista_locais *BDlocais) {
     lista_PDIs *aux;
     while (BDlocais->next != NULL) {
         printf("%d\n%s\n", BDlocais->next->loc->id, BDlocais->next->loc->nome_local);
         aux = BDlocais->next->loc->pontos;
-        while (aux->next != NULL) {
+        ordena_PDI_alfabetica(aux);
+            while (aux->next != NULL) {
             printf("\t%d\n\t%s\n\t%s\n\t%s\n", aux->next->ponto_interesse->id, aux->next->ponto_interesse->nome_PDI,
                    aux->next->ponto_interesse->descricao, aux->next->ponto_interesse->horario);
             aux = aux->next;
@@ -708,7 +709,7 @@ void menu_listagens(lista_locais *BDlocais, lista_locais *BDlocaisPop) {
             case 1:
                 /*ordena_local_alfabetico(BDlocais);
                 ordena_PDIs_de_locais_alfabetica(BDlocais);*/
-                imprime_local_pdis(BDlocais);
+                imprime_local_pdis_alfabetica(BDlocais);
                 break;
             case 2:
                 /*ordena_local_popularidade(BDlocais);
@@ -768,8 +769,8 @@ void menu_viagem(lista_utilizadores *BDutilizadores, lista_PDIs *BDPDIs) {/*NAO 
         printf("Este utilizador ainda não escolheu 3 locais preferidos\n");
         return;
     }
-    viagem = constroi_viagem(id, BDutilizadores)->next;
-    viagem_cabecalho = viagem;
+    viagem_cabecalho = constroi_viagem(id, BDutilizadores);
+    viagem = viagem_cabecalho->next;
     aux = pesquisa_utilizador(BDutilizadores, id)->locais_escolhidos->next;
     for (id = 0; id < 3; id++) {
         printf("%d\n%s\n", aux->loc->id, aux->loc->nome_local);
@@ -784,6 +785,7 @@ void menu_viagem(lista_utilizadores *BDutilizadores, lista_PDIs *BDPDIs) {/*NAO 
            percentagem_local_preferido(pesquisa_utilizador(BDutilizadores, id)->locais_escolhidos, BDutilizadores) +
            percentagem_PDI_hot(BDutilizadores, viagem_cabecalho) +
            percentagem_preferencias_PDI(BDPDIs, viagem_cabecalho) / 3);
+    destroi_lista_PDIs(viagem_cabecalho);
 }
 
 /*funcoes auxiliares
@@ -847,7 +849,7 @@ lista_PDIs *constroi_viagem(int id_util, lista_utilizadores *BDutilizadores) {
     for (i = 1; i < 4; i++) {
         locais = locais->next;
         loc = locais->loc;
-        aux = loc->pontos->next;
+        aux = loc->pontospop->next;
         while (aux != NULL && conta_PDIs(resultado) < 3 * i) { /*Encontra o hot se existir e adiciona-o a lista*/
             if (aux->ponto_interesse == humano->hot) {
                 inserir_PDI(resultado, aux->ponto_interesse);
@@ -855,7 +857,7 @@ lista_PDIs *constroi_viagem(int id_util, lista_utilizadores *BDutilizadores) {
             }
             aux = aux->next;
         }
-        aux = loc->pontos->next;
+        aux = loc->pontospop->next;
         while (aux != NULL && conta_PDIs(resultado) < 3 *
                                                       i) { /*Verifica se PDI ja esta na lista resultado e se pertence aos preferidos do utilizador*/
             if (pesquisa_PDI(resultado, aux->ponto_interesse->id) == NULL &&
@@ -864,7 +866,7 @@ lista_PDIs *constroi_viagem(int id_util, lista_utilizadores *BDutilizadores) {
             }
             aux = aux->next;
         }
-        aux = loc->pontos->next;
+        aux = loc->pontospop->next;
         while (aux != NULL &&
                conta_PDIs(resultado) < 3 * i) { /*Verifica se os pontos ja estao na lista resultado e adiciona se nao*/
             if (pesquisa_PDI(resultado, aux->ponto_interesse->id) == NULL) {
