@@ -5,9 +5,6 @@
 #include <string.h>
 #define NOME_F_LOCAIS "Ficheiro_projeto.txt"
 #define BUFFER_SIZE 1000
-#define DIM 1000
-#define MAX 1000
-#define MIN 1000
 #define INT_DIM 11
 #define ANO_ATUAL 2019
 #define ANO_INICIAL 1900
@@ -29,7 +26,7 @@ typedef struct{ /*estrutura para data de nascimento*/
     int dia,mes,ano;
 }data;
 
-typedef struct _utilizador{ /*estrutura para registo de utilizador*/
+struct _utilizador{ /*estrutura para registo de utilizador*/
     int id; /*identificador único*/
     char *nome_utilizador;
     char *morada;
@@ -38,9 +35,9 @@ typedef struct _utilizador{ /*estrutura para registo de utilizador*/
     lista_locais *locais_escolhidos;
     lista_PDIs *pdis_preferidos;
     PDI *hot;
-}utilizador;
+};
 
-typedef struct _PDI{ /*estrutura para pontos de interesse*/
+struct _PDI{ /*estrutura para pontos de interesse*/
     int id; /*identificador único*/
     char *nome_PDI;
     char *descricao;
@@ -48,30 +45,30 @@ typedef struct _PDI{ /*estrutura para pontos de interesse*/
     lista_utilizadores *util; /*lista de utilizadores que preferiram este PDI*/
     lista_utilizadores *hot;
     local *loc;
-}PDI;
+};
 
-typedef struct _local{ /*estrutura de cada local e respetivos pontos de interesse*/
+struct _local{ /*estrutura de cada local e respetivos pontos de interesse*/
     int id; /*identificador único*/
     char *nome_local;
     lista_PDIs *pontos;//local tem lista ligada de PDIs
     lista_PDIs *pontospop;
     lista_utilizadores *util; /*lista de utilizadores que preferiram este local*/
-}local;
+};
 
-typedef struct _lista_utilizadores{ /*estrutura para lista de utilizadores*/
+struct _lista_utilizadores{ /*estrutura para lista de utilizadores*/
     utilizador *pessoa;
     lista_utilizadores *next;
-}lista_utilizadores;
+};
 
-typedef struct _lista_PDIs{ /*estrutura para lista de pontos de interesse*/
+struct _lista_PDIs{ /*estrutura para lista de pontos de interesse*/
     PDI *ponto_interesse;
     lista_PDIs *next;
-}lista_PDIs;
+};
 
-typedef struct _lista_locais{ /*estrutura para lista de locais*/
+struct _lista_locais{ /*estrutura para lista de locais*/
     local *loc; /*aponta para uma estrutura local*/
     lista_locais *next; /*aponta para o elemento seguinte da lista*/
-}lista_locais;
+};
 
 /*LISTAS LOCAIS*/
 local *pesquisa_local(lista_locais *lista, int id_a_encontrar);
@@ -85,8 +82,6 @@ void inserir_local(lista_locais *lista, local *loc);
 void imprime_lista_locais(lista_locais *lista);
 void imprime_local_pdis_alfabetica(lista_locais *BDlocais);
 char remove_local(lista_locais *BDlocais, int id);
-void ordena_local_popularidade(lista_locais *lista);
-void ordena_local_alfabetico(lista_locais *lista);
 
 
 /*LISTAS PDIS*/
@@ -100,8 +95,6 @@ PDI *cria_PDI(char *nome, char *descricao, char *horario, lista_PDIs *BD_PDIs, l
 void inserir_PDI(lista_PDIs *lista, PDI *loc);
 void imprime_lista_PDIs(lista_PDIs *lista);
 char remove_PDI(lista_PDIs *BDpdis, int id);
-void ordena_PDI_alfabetica(lista_PDIs *lista);
-void ordena_PDI_popularidade(lista_PDIs *lista);
 
 /*LISTAS UTILIZADORES*/
 utilizador *pesquisa_utilizador(lista_utilizadores *lista, int id_a_encontrar);
@@ -128,9 +121,6 @@ void remove_nova_linha(char *frase);
 int conta_utilizadores(lista_utilizadores *lista);
 int conta_locais(lista_locais *lista);
 int conta_PDIs(lista_PDIs *lista);
-lista_locais *menu_local_popularidade(lista_locais *BDlocais);
-void ordena_PDIs_de_locais_popularidade(lista_locais *lista);
-void ordena_PDIs_de_locais_alfabetica(lista_locais *lista);
 lista_PDIs *constroi_viagem(int id_util, lista_utilizadores *BDutilizadores);
 float percentagem_local_preferido(lista_locais *locais_util, lista_utilizadores *BDutilizadores);
 float percentagem_PDI_hot(lista_utilizadores *BDutilizadores, lista_PDIs *viagem);
