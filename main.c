@@ -835,7 +835,7 @@ void data_erros(char erro) {
 }
 
 char verifica_telefone(int telefone) {
-    if (telefone < N_TEL_MIN || (telefone > N_TEL_MED_MIN && telefone < N_TEL_MED_MAX) || telefone > N_TEL_MAX) {
+    if (telefone < N_TEL_MIN || (telefone >= N_TEL_MED_MIN && telefone < N_TEL_MED_MAX) || telefone > N_TEL_MAX) {
         printf("Numero de telefone invalido\n");
         return 1;
     }
